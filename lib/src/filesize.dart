@@ -62,3 +62,45 @@ String filesize(dynamic size, [int round = 2]) {
     return '${r.toStringAsFixed(round)} PB';
   }
 }
+
+RegExp regex = RegExp(r'^([\d.]+)\s*([a-zA-Z]+)$');
+
+int parseFilesize(String size) {
+  /**
+   * [size] must be a string in the format of '1 KB', '1.5 MB', etc.
+   * Supported units: B, KB, MB, GB, TB, PB
+   */
+
+  // Define multipliers
+  const Map<String, int> unitMultipliers = {
+    'B': 1,
+    'KB': 1024,
+    'MB': 1024 * 1024,
+    'GB': 1024 * 1024 * 1024,
+    'TB': 1024 * 1024 * 1024 * 1024,
+    'PB': 1024 * 1024 * 1024 * 1024 * 1024,
+  };
+
+  // Regular expression to extract the number and unit
+
+  final match = regex.firstMatch(size);
+
+  if (match == null) {
+    throw ArgumentError('Invalid size format: $size');
+  }
+
+  // Parse the number and unit
+  final numValue = double.tryParse(match.group(1) ?? '');
+  final unit = match.group(2)?.toUpperCase();
+
+  if (numValue == null || unit == null || !unitMultipliers.containsKey(unit)) {
+    throw ArgumentError('Invalid size format: $size');
+  }
+
+  // Convert to bytes
+  return (numValue * unitMultipliers[unit]!).round();
+}
+
+bool sizeCompare(String a, String b) {
+  return parseFilesize(a) > parseFilesize(b);
+}
